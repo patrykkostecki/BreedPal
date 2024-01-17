@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="BreedPal">My Application</string>
+    <string name="hint_text">Wpisz tekst</string>
+    <string name="button_send">Wyślij</string>
 </resources>
