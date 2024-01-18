@@ -2,5 +2,10 @@
     <string name="BreedPal">BreedPal</string>
     <string name="hint_text">Wpisz tekst</string>
     <string name="button_send">Wyślij</string>
-    <string name="button_back">Wyróć</string>
+    <string name="button_back">Wróć</string>
+    <string name="hello">Witaj! Podaj nam swoje imie :)</string>
+    <string name="take_a_photo">Zrób zdjęcie</string>
+    <string name="load_from_gallery">Dodaj z galerii</string>
+    <string name="classification">Jest to: </string>
+
 </resources>

@@ -1,12 +1,11 @@
 package com.essa.myapplication;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Message;
 import android.view.View;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class DisplayMessageActivity extends AppCompatActivity {
 
@@ -26,6 +25,13 @@ public class DisplayMessageActivity extends AppCompatActivity {
     public void returnToMain(View view){
 
         Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+
+    }
+
+    public void goToApp(View view){
+
+        Intent intent = new Intent(this, ModelDisplay.class);
         startActivity(intent);
 
     }
