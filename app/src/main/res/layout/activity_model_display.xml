@@ -17,10 +17,13 @@
         android:text="@string/take_a_photo"
         android:textAllCaps="false"
         android:textSize="21sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:backgroundTint="#000000"
+        />
 
 
     <Button
+        android:backgroundTint="#000000"
         android:id="@+id/button2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -50,6 +53,7 @@
         android:textStyle="bold"
         />
     <TextView
+        android:backgroundTint="#000000"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -62,6 +66,7 @@
         />
 
     <Button
+        android:backgroundTint="#000000"
         android:id="@+id/classifyButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
