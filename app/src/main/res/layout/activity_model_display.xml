@@ -3,7 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="#f3efdf">
+    >
+
 
     <Button
         android:id="@+id/button"
@@ -15,6 +18,7 @@
         android:textAllCaps="false"
         android:textSize="21sp"
         android:textStyle="bold" />
+
 
     <Button
         android:id="@+id/button2"
@@ -31,7 +35,7 @@
         android:layout_height="370sp"
         android:layout_centerHorizontal="true"
         android:id="@+id/imageView"
-        android:layout_marginTop="10sp"
+        android:layout_marginTop="105sp"
         />
 
     <TextView
@@ -43,7 +47,8 @@
         android:layout_marginTop="10sp"
         android:text="@string/classification"
         android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -58,16 +63,21 @@
 
     <Button
         android:id="@+id/classifyButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/button"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginStart="158dp"
-        android:layout_marginTop="553dp"
-        android:layout_marginEnd="162dp"
-        android:layout_marginBottom="34dp"
+        android:textAllCaps="false"
+        android:textSize="21sp"
+        android:textStyle="bold"
         android:text="Predykcja" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="183dp"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/logo"
+        tools:layout_editor_absoluteX="114dp"
+        tools:layout_editor_absoluteY="16dp"/>
 
 </RelativeLayout>

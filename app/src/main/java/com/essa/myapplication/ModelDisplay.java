@@ -4,182 +4,160 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
 
-import org.tensorflow.lite.Interpreter;
+import com.essa.myapplication.ml.MobilenetV110224Quant;
+
+import org.tensorflow.lite.DataType;
+import org.tensorflow.lite.support.image.TensorImage;
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ModelDisplay extends AppCompatActivity {
-
-    private static final String TAG = "ModelDisplay";
-    private static final int imageSize = 224; // Upewnij się, że odpowiada rozmiarowi modelu
-    private Button camera, gallery, classifyButton;
-    private ImageView imageView;
-    private TextView result;
-    private List<String> class_names = new ArrayList<>();
-    private Bitmap currentImage;
-    private Interpreter tflite;
-
-    private final ActivityResultLauncher<Intent> cameraLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    currentImage = (Bitmap) result.getData().getExtras().get("data");
-                    imageView.setImageBitmap(currentImage);
-                }
-            });
-
-    private final ActivityResultLauncher<String> galleryLauncher =
-            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
-                try {
-                    currentImage = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
-                    imageView.setImageBitmap(currentImage);
-                } catch (IOException e) {
-                    Log.e(TAG, "Error opening image from gallery", e);
-                }
-            });
+    Button selectBtn, predictBtn, captureBtn;
+    TextView result;
+    ImageView imageView;
+    Bitmap bitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_model_display);
 
-        camera = findViewById(R.id.button);
-        gallery = findViewById(R.id.button2);
-        classifyButton = findViewById(R.id.classifyButton);
-        imageView = findViewById(R.id.imageView);
+        getPermission();
+
+        String[] labels = new String[1001];
+        int cnt = 0;
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(getAssets().open("labels.txt")));
+            String line = bufferedReader.readLine();
+            while (line != null){
+                labels[cnt] = line;
+                cnt++;
+                line = bufferedReader.readLine();
+
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        selectBtn = findViewById(R.id.button2);
+        predictBtn = findViewById(R.id.classifyButton);
+        captureBtn = findViewById(R.id.button);
+
         result = findViewById(R.id.result);
 
-        loadClassNames();
-        if (loadTFLiteModel()) {
-            camera.setOnClickListener(view -> {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{Manifest.permission.CAMERA}, 100);
-                } else {
-                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    cameraLauncher.launch(cameraIntent);
+        imageView = findViewById(R.id.imageView);
+
+        selectBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/*");
+                startActivityForResult(intent, 10);
+            }
+        });
+
+        captureBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(intent,12);
+
+            }
+        });
+
+        predictBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                try {
+                    MobilenetV110224Quant model = MobilenetV110224Quant.newInstance(ModelDisplay.this);
+
+                    // Creates inputs for reference.
+                    TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.UINT8);
+
+                    bitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, true);
+                    inputFeature0.loadBuffer(TensorImage.fromBitmap(bitmap).getBuffer());
+
+                    // Runs model inference and gets result.
+                    MobilenetV110224Quant.Outputs outputs = model.process(inputFeature0);
+                    TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+
+                    result.setText(labels[getMax(outputFeature0.getFloatArray())]+"");
+                    // Releases model resources if no longer used.
+                    model.close();
+                } catch (IOException e) {
+                    // TODO Handle the exception
                 }
-            });
 
-            gallery.setOnClickListener(view -> galleryLauncher.launch("image/*"));
+            }
+        });
+    }
 
-            classifyButton.setOnClickListener(view -> {
-                if (currentImage != null) {
-                    classifyImage(currentImage);
-                } else {
-                    result.setText("No image selected");
+    int getMax(float[] arr){
+        int max = 0;
+        for (int i=0;i<arr.length;i++){
+            if (arr[i] > arr[max]) max=i;
+        }
+        return max;
+    }
+
+    void getPermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(ModelDisplay.this, new String[]{Manifest.permission.CAMERA}, 11);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode==11){
+            if (grantResults.length > 0){
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
+                    this.getPermission();
                 }
-            });
-        } else {
-            Log.e(TAG, "Error loading TFLite model");
-        }
-    }
-
-    private void loadClassNames() {
-        try {
-            InputStream is = getAssets().open("class_names.txt");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                class_names.add(line);
-            }
-            reader.close();
-        } catch (IOException e) {
-            Log.e(TAG, "Error reading class names file", e);
-        }
-    }
-
-    private boolean loadTFLiteModel() {
-        try {
-            ByteBuffer buffer = loadModelFile();
-            if (buffer != null) {
-                tflite = new Interpreter(buffer);
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading TFLite model", e);
-            return false;
-        }
-    }
-
-    private ByteBuffer loadModelFile() {
-        try {
-            InputStream is = this.getAssets().open("model.tflite");
-            byte[] model = new byte[is.available()];
-            is.read(model);
-            ByteBuffer buffer = ByteBuffer.allocateDirect(model.length);
-            buffer.order(ByteOrder.nativeOrder());
-            buffer.put(model);
-            buffer.rewind();
-            is.close();
-            return buffer;
-        } catch (IOException e) {
-            Log.e(TAG, "Error opening model file", e);
-            return null;
-        }
-    }
-
-    private void classifyImage(Bitmap image) {
-        Bitmap scaledImage = scaleImage(image);
-        ByteBuffer inputBuffer = convertBitmapToByteBuffer(scaledImage);
-        float[][] outputVal = new float[1][class_names.size()];
-        tflite.run(inputBuffer, outputVal);
-        displayResult(outputVal);
-    }
-
-    private Bitmap scaleImage(Bitmap image) {
-        return Bitmap.createScaledBitmap(image, imageSize, imageSize, true);
-    }
-
-    private ByteBuffer convertBitmapToByteBuffer(Bitmap bitmap) {
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(imageSize * imageSize * 3 * 4); // Rozmiar * 4 (float)
-        byteBuffer.order(ByteOrder.nativeOrder());
-        int[] intValues = new int[imageSize * imageSize];
-
-        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, imageSize, imageSize, true);
-        scaledBitmap.getPixels(intValues, 0, scaledBitmap.getWidth(), 0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight());
-
-        for (int i = 0; i < imageSize; i++) {
-            for (int j = 0; j < imageSize; j++) {
-                final int val = intValues[i * imageSize + j];
-                byteBuffer.putFloat(((val >> 16) & 0xFF) / 255.0f);
-                byteBuffer.putFloat(((val >> 8) & 0xFF) / 255.0f);
-                byteBuffer.putFloat((val & 0xFF) / 255.0f);
             }
         }
-        return byteBuffer;
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    private void displayResult(float[][] resultArray) {
-        int maxIndex = -1;
-        float maxConfidence = 0;
-        for (int i = 0; i < class_names.size(); i++) {
-            if (resultArray[0][i] > maxConfidence) {
-                maxConfidence = resultArray[0][i];
-                maxIndex = i;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode==10){
+            if(data != null){
+                Uri uri = data.getData();
+                try {
+                    bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                    imageView.setImageBitmap(bitmap);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
+        } else if (requestCode == 12){
+            bitmap = (Bitmap) data.getExtras().get("data");
+            imageView.setImageBitmap(bitmap);
         }
-        String className = maxIndex >= 0 ? class_names.get(maxIndex) : "Unknown";
-        result.setText(className);
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
