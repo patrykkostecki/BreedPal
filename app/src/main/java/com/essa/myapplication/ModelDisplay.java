@@ -8,9 +8,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.essa.myapplication.ml.MobilenetV110224Quant;
-import com.essa.myapplication.ml.Model;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.image.TensorImage;
@@ -30,50 +29,26 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import org.tensorflow.lite.DataType;
-import org.tensorflow.lite.support.image.TensorImage;
-
 public class ModelDisplay extends AppCompatActivity {
 
     Button selectBtn, predictBtn, captureBtn;
     TextView result;
     ImageView imageView;
     Bitmap bitmap;
+    String[] labels = new String[1002];
+
+    private Switch languageSwitch;
+    private String[] labelss;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_model_display);
 
         getPermission();
-
-        String[] labels = new String[120];
-        int cnt = 0;
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(getAssets().open("class_names.txt")));
-            String line = bufferedReader.readLine();
-            while (line != null){
-                labels[cnt] = line;
-                cnt++;
-                line = bufferedReader.readLine();
-
-
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+        loadLabels();
 
         selectBtn = findViewById(R.id.button2);
         predictBtn = findViewById(R.id.classifyButton);
@@ -83,100 +58,114 @@ public class ModelDisplay extends AppCompatActivity {
 
         imageView = findViewById(R.id.imageView);
 
-        selectBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/*");
-                startActivityForResult(intent, 10);
-            }
-        });
+        selectBtn.setOnClickListener(v -> openGallery());
 
-        captureBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(intent,12);
+        captureBtn.setOnClickListener(v -> openCamera());
 
-            }
-        });
-
-        predictBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (bitmap != null) {
-                    try {
-                        Model model = Model.newInstance(ModelDisplay.this);
-
-                        // Przeskaluj bitmapę do rozmiaru odpowiadającego wejściu modelu
-
-                        // Konwertuj przeskalowany obraz na TensorBuffer
-                        TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
-
-                        // Wykonaj inferencję modelu i pobierz wynik
-                        Model.Outputs outputs = model.process(inputFeature0);
-                        TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-
-                        // Wyświetl wynik
-                        result.setText(labels[getMax(outputFeature0.getFloatArray())] + "");
-
-                        // Zwolnij zasoby modelu, jeśli nie są już potrzebne
-                        model.close();
-                    } catch (IOException e) {
-                        // Obsługuj wyjątek
-                    }
-                }
+        predictBtn.setOnClickListener(v -> {
+            if (bitmap != null) {
+                performPrediction();
             }
         });
     }
 
 
-    int getMax(float[] arr){
-        int max = 0;
-        for (int i=0;i<arr.length;i++){
-            if (arr[i] > arr[max]) max=i;
+
+    private void loadLabels() {
+        int cnt = 0;
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(getAssets().open("labelsPL.txt")));
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                labels[cnt] = line;
+                cnt++;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Problem loading labels", e);
         }
-        return max;
     }
 
-    void getPermission(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(ModelDisplay.this, new String[]{Manifest.permission.CAMERA}, 11);
+    private void openGallery() {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(intent, 10);
+    }
+
+    private void openCamera() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, 12);
+    }
+
+    private void performPrediction() {
+        try {
+            MobilenetV110224Quant model = MobilenetV110224Quant.newInstance(ModelDisplay.this);
+
+            // Skalowanie i przetwarzanie bitmapy.
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, true);
+            TensorImage tensorImage = new TensorImage(DataType.UINT8);
+            tensorImage.load(scaledBitmap);
+
+            // Konwersja TensorImage na ByteBuffer.
+            ByteBuffer byteBuffer = tensorImage.getBuffer();
+
+            // Tworzenie danych wejściowych dla modelu.
+            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.UINT8);
+            inputFeature0.loadBuffer(byteBuffer);
+
+            // Uruchomienie modelu i otrzymanie wyników.
+            MobilenetV110224Quant.Outputs outputs = model.process(inputFeature0);
+            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+
+            // Interpretacja wyników.
+            float[] probabilities = outputFeature0.getFloatArray();
+            int maxIndex = getMax(probabilities);
+            result.setText(labels[maxIndex]);
+
+            model.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int getMax(float[] arr) {
+        int maxIndex = 0;
+        for (int i = 0; i < arr.length; i++) {
+            maxIndex = arr[i] > arr[maxIndex] ? i : maxIndex;
+        }
+        return maxIndex;
+    }
+
+    private void getPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 11);
             }
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode==11){
-            if (grantResults.length > 0){
-                if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
-                    this.getPermission();
-                }
-            }
-        }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 11 && grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+            getPermission();
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode==10){
-            if(data != null){
-                Uri uri = data.getData();
-                try {
-                    bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                    imageView.setImageBitmap(bitmap);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 10 && data != null) {
+            Uri uri = data.getData();
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                imageView.setImageBitmap(bitmap);
+            } catch (IOException e) {
+                throw new RuntimeException("Problem loading image", e);
             }
-        } else if (requestCode == 12){
+        } else if (requestCode == 12 && data != null) {
             bitmap = (Bitmap) data.getExtras().get("data");
             imageView.setImageBitmap(bitmap);
         }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 }
