@@ -6,19 +6,36 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:background="@drawable/background">
+    android:background="@drawable/background"
     >
 
     <EditText
         android:id="@+id/editText"
-        android:layout_width="262dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="16dp"
+        android:layout_width="267dp"
+        android:layout_height="99dp"
+        android:layout_marginStart="28dp"
         android:layout_marginTop="500dp"
         android:ems="10"
         android:hint="@string/hint_text"
         android:inputType="text"
+        android:textStyle="bold"
+        android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/languageSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="176dp"
+        android:checked="false"
+        android:textOff="PL"
+        android:textOn="ENG"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -26,37 +43,44 @@
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
+        android:backgroundTint="#720A2F43"
         android:onClick="sendMessage"
         android:text="@string/button_send"
         android:textColor="@color/white"
-        android:backgroundTint="#000000"
+        android:textStyle="bold"
         app:layout_constraintBaseline_toBaselineOf="@+id/editText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.422"
         app:layout_constraintStart_toEndOf="@+id/editText" />
 
+
     <TextView
         android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:textSize="20dp"
-        android:layout_marginBottom="400dp"
+        android:layout_width="376dp"
+        android:layout_height="197dp"
+        android:layout_marginBottom="250dp"
+        android:gravity="center"
         android:text="@string/hello"
+        android:textColor="@color/black"
+        android:textSize="40sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.542"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="183dp"
-        android:layout_height="100dp"
+        android:layout_width="214dp"
+        android:layout_height="196dp"
         android:layout_centerHorizontal="true"
         android:background="@drawable/logo"
-        tools:layout_editor_absoluteX="114dp"
-        tools:layout_editor_absoluteY="16dp"
+        app:layout_constraintBottom_toTopOf="@id/textView2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/textView2" />
+        app:layout_constraintVertical_bias="0.078" />
 </androidx.constraintlayout.widget.ConstraintLayout>
