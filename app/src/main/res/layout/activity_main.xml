@@ -11,15 +11,15 @@
 
     <EditText
         android:id="@+id/editText"
-        android:layout_width="267dp"
-        android:layout_height="99dp"
+        android:layout_width="251dp"
+        android:layout_height="79dp"
         android:layout_marginStart="28dp"
         android:layout_marginTop="500dp"
         android:ems="10"
         android:hint="@string/hint_text"
         android:inputType="text"
-        android:textStyle="bold"
         android:textColor="@color/black"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -30,7 +30,7 @@
         android:id="@+id/languageSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="176dp"
+        android:layout_marginTop="184dp"
         android:checked="false"
         android:textOff="PL"
         android:textOn="ENG"
@@ -50,9 +50,8 @@
         android:textStyle="bold"
         app:layout_constraintBaseline_toBaselineOf="@+id/editText"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.422"
+        app:layout_constraintHorizontal_bias="0.272"
         app:layout_constraintStart_toEndOf="@+id/editText" />
-
 
     <TextView
         android:id="@+id/textView2"
@@ -62,19 +61,19 @@
         android:gravity="center"
         android:text="@string/hello"
         android:textColor="@color/black"
-        android:textSize="40sp"
+        android:textSize="35sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.542"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.94" />
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="214dp"
-        android:layout_height="196dp"
+        android:layout_width="196dp"
+        android:layout_height="160dp"
         android:layout_centerHorizontal="true"
         android:background="@drawable/logo"
         app:layout_constraintBottom_toTopOf="@id/textView2"
@@ -82,5 +81,5 @@
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.078" />
+        app:layout_constraintVertical_bias="0.149" />
 </androidx.constraintlayout.widget.ConstraintLayout>

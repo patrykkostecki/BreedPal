@@ -3,7 +3,7 @@
     <string name="hint_text">Wpisz imię</string>
     <string name="button_send">Wyślij</string>
     <string name="button_back">Wróć</string>
-    <string name="hello">Witaj!\nPodaj nam swoje imie :)</string>
+    <string name="hello">Witaj!\nPodaj nam swoje imie!</string>
     <string name="take_a_photo">Zrób zdjęcie</string>
     <string name="load_from_gallery">Dodaj z galerii</string>
     <string name="classification">Jest to: </string>
